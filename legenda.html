@@ -1,3 +1,6 @@
+AIzaSyCXoO4o_OVRgbE7VgMIzKBc19tPSBrif9g
+
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -5,95 +8,51 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consulta de Propriedades</title>
     <script>
-        let properties = [];
+        // Função para buscar dados do Google Sheets
+        function searchByCode() {
+            const codeInput = document.getElementById('codeInput').value;
+            const apiKey = '{AIzaSyCXoO4o_OVRgbE7VgMIzKBc19tPSBrif9g}';
+            const spreadsheetId = '{1mXiLgpSRAwc5q8RKK4jUTZ5NyJpzlylJprFU-XD6djs}';
+            const range = 'A2:H'; // Faixa dos dados que contém os registros
+            const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
 
-        // Função para carregar dados do JSON
-        function loadData() {
-            fetch('registros.json')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Erro ao carregar o arquivo JSON.');
-                    }
-                    return response.json();
-                })
+            fetch(url)
+                .then(response => response.json())
                 .then(data => {
-                    properties = data;
+                    const rows = data.values;
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.innerHTML = ''; // Limpar resultados anteriores
+
+                    // Buscar por código
+                    const filteredRow = rows.find(row => row[0] === codeInput);
+                    
+                    if (filteredRow) {
+                        resultDiv.innerHTML = `
+                            <p><strong>Código:</strong> ${filteredRow[0]}</p>
+                            <p><strong>Nome da Propriedade:</strong> ${filteredRow[1]}</p>
+                            <p><strong>Código SIGEF/SNCI:</strong> ${filteredRow[2]}</p>
+                            <p><strong>Município:</strong> ${filteredRow[3]}</p>
+                            <p><strong>Área (ha):</strong> ${filteredRow[4]}</p>
+                            <p><strong>Código Único:</strong> ${filteredRow[5]}</p>
+                            <p><strong>Latitude:</strong> ${filteredRow[6]}</p>
+                            <p><strong>Longitude:</strong> ${filteredRow[7]}</p>
+                            <p><a href="https://www.google.com/maps/search/?api=1&query=${filteredRow[6]},${filteredRow[7]}" target="_blank">Ver no Google Maps</a></p>
+                        `;
+                    } else {
+                        resultDiv.innerHTML = '<p>Código não encontrado.</p>';
+                    }
                 })
                 .catch(error => {
-                    console.error(error);
-                    alert('Erro ao carregar o arquivo JSON: ' + error.message);
+                    console.error('Erro ao buscar os dados:', error);
+                    document.getElementById('result').innerHTML = 'Erro ao buscar os dados.';
                 });
         }
-
-        // Função para consultar propriedades
-        function consult() {
-            const codeInput = document.getElementById('codeInput').value.trim();
-            const nameInput = document.getElementById('nameInput').value.trim();
-            const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = ''; // Limpa resultados anteriores
-
-            if (codeInput) {
-                const property = properties.find(p => p.codigo === codeInput);
-                if (property) {
-                    resultDiv.innerHTML = `
-                        <h3>Resultado:</h3>
-                        <p>Código: ${property.codigo}</p>
-                        <p>Nome da Propriedade: ${property.nome}</p>
-                        <p>Código SIGEF/SNCI: ${property.sigef}</p>
-                        <p>Município: ${property.municipio}</p>
-                        <p>Área (ha): ${property.area}</p>
-                        <p>Código Único: ${property.codigoUnico}</p>
-                        <p>Latitude: ${property.lat}</p>
-                        <p>Longitude: ${property.lon}</p>
-                        <p><a href="https://www.google.com/maps/search/?api=1&query=${property.lat},${property.lon}" target="_blank">Ver no Google Maps</a></p>
-                    `;
-                } else {
-                    resultDiv.innerHTML = '<p>Nenhum registro encontrado.</p>';
-                }
-            } else if (nameInput) {
-                const filteredProperties = properties.filter(p => p.nome.toLowerCase().includes(nameInput.toLowerCase()));
-                if (filteredProperties.length > 0) {
-                    resultDiv.innerHTML = '<h3>Resultados:</h3>';
-                    filteredProperties.forEach(property => {
-                        resultDiv.innerHTML += `
-                            <p><strong>${property.nome}</strong> <a href="#" onclick="showDetails('${property.codigo}')">Detalhes</a></p>
-                        `;
-                    });
-                } else {
-                    resultDiv.innerHTML = '<p>Nenhum registro encontrado.</p>';
-                }
-            }
-        }
-
-        // Função para mostrar detalhes do registro
-        function showDetails(codigo) {
-            const property = properties.find(p => p.codigo === codigo);
-            if (property) {
-                const resultDiv = document.getElementById('result');
-                resultDiv.innerHTML = `
-                    <h3>Detalhes:</h3>
-                    <p>Código: ${property.codigo}</p>
-                    <p>Nome da Propriedade: ${property.nome}</p>
-                    <p>Código SIGEF/SNCI: ${property.sigef}</p>
-                    <p>Município: ${property.municipio}</p>
-                    <p>Área (ha): ${property.area}</p>
-                    <p>Código Único: ${property.codigoUnico}</p>
-                    <p>Latitude: ${property.lat}</p>
-                    <p>Longitude: ${property.lon}</p>
-                    <p><a href="https://www.google.com/maps/search/?api=1&query=${property.lat},${property.lon}" target="_blank">Ver no Google Maps</a></p>
-                `;
-            }
-        }
-
-        // Carrega dados ao abrir a página
-        window.onload = loadData;
     </script>
 </head>
 <body>
     <h1>Consulta de Propriedades</h1>
-    <input type="text" id="codeInput" placeholder="Código" />
-    <input type="text" id="nameInput" placeholder="Nome da Propriedade" />
-    <button onclick="consult()">Consultar</button>
+    <input type="text" id="codeInput" placeholder="Insira o Código" />
+    <button onclick="searchByCode()">Consultar</button>
     <div id="result"></div>
 </body>
 </html>
