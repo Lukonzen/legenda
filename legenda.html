@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesquisa de Propriedades</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Pesquisa de Propriedades</h2>
+
+<label for="search">Pesquisar por Código ou Nome da Propriedade:</label>
+<input type="text" id="search" placeholder="Digite o Código ou Nome da Propriedade...">
+<button onclick="filterTable()">CONSULTAR</button>
+
+<p id="message"></p> <!-- Para exibir mensagens de erro ou sucesso -->
+
+<table id="propertyTable">
+    <thead>
+        <tr>
+            <th>Código</th>
+            <th>Nome da Propriedade</th>
+            <th>Código SIGEF/SNCI</th>
+            <th>Município</th>
+            <th>Área (ha)</th>
+            <th>Código Único</th>
+            <th>Localização (Mapa)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Os dados serão carregados dinamicamente aqui -->
+    </tbody>
+</table>
+
+<script>
+let properties = [];
+
+document.addEventListener("DOMContentLoaded", function() {
+    loadCSVData();
+});
+
+function loadCSVData() {
+    fetch('registros.csv')  // Carrega o arquivo CSV
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro ao carregar o arquivo CSV');
+            }
+            return response.text();
+        })
+        .then(data => {
+            const rows = data.split('\n').slice(1); // Ignora o cabeçalho
+            properties = rows.map(row => {
+                const columns = row.split('\t'); // Considerando que o CSV usa tabulação como separador
+                if (columns.length >= 8) {
+                    return {
+                        codigo: columns[0],
+                        nome: columns[1],
+                        sigef: columns[2],
+                        municipio: columns[3],
+                        area: columns[4],
+                        codigoUnico: columns[5],
+                        lat: columns[6],
+                        lon: columns[7]
+                    };
+                }
+            }).filter(Boolean); // Remove registros inválidos
+            populateTable(properties); // Popula a tabela com os dados
+        })
+        .catch(error => {
+            document.getElementById('message').textContent = "Erro ao carregar o arquivo CSV: " + error.message;
+            console.error("Erro ao carregar CSV:", error);
+        });
+}
+
+function populateTable(data) {
+    const tableBody = document.querySelector("#propertyTable tbody");
+    tableBody.innerHTML = ''; // Limpa a tabela
+
+    data.forEach(property => {
+        const newRow = `
+            <tr>
+                <td>${property.codigo}</td>
+                <td>${property.nome}</td>
+                <td>${property.sigef}</td>
+                <td>${property.municipio}</td>
+                <td>${property.area}</td>
+                <td>${property.codigoUnico}</td>
+                <td><a href="https://www.google.com/maps?q=${property.lat},${property.lon}" target="_blank">Ver no mapa</a></td>
+            </tr>`;
+        tableBody.innerHTML += newRow;
+    });
+}
+
+function filterTable() {
+    const searchValue = document.getElementById("search").value.toUpperCase();
+    const filteredData = properties.filter(property => 
+        property.codigo.toUpperCase().includes(searchValue) || 
+        property.nome.toUpperCase().includes(searchValue)
+    );
+
+    if (filteredData.length > 0) {
+        populateTable(filteredData);
+        document.getElementById('message').textContent = '';
+    } else {
+        document.getElementById('message').textContent = 'Nenhum resultado encontrado.';
+        populateTable([]); // Limpa a tabela se não houver resultados
+    }
+}
+</script>
+
+</body>
+</html>
