@@ -1,4 +1,3 @@
-AIzaSyCXoO4o_OVRgbE7VgMIzKBc19tPSBrif9g
 
 
 <!DOCTYPE html>
@@ -8,42 +7,34 @@ AIzaSyCXoO4o_OVRgbE7VgMIzKBc19tPSBrif9g
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consulta de Propriedades</title>
     <script>
-        // Função para buscar dados do Google Sheets
         function searchByCode() {
             const codeInput = document.getElementById('codeInput').value;
-            const apiKey = '{AIzaSyCXoO4o_OVRgbE7VgMIzKBc19tPSBrif9g}';
-            const spreadsheetId = '{1mXiLgpSRAwc5q8RKK4jUTZ5NyJpzlylJprFU-XD6djs}';
-            const range = 'A2:H'; // Faixa dos dados que contém os registros
-            const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${range}?key=${apiKey}`;
+            const apiUrl = 'https://script.google.com/macros/s/AKfycbwyHWxYj_gDQLG-WIRD7qY0n6I8Uyzazr6haNUUQy1hRsHXWM9M3S8llX7bXybmG0a4/exec?query=' + codeInput + '&type=codigo';
 
-            fetch(url)
+            fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
-                    const rows = data.values;
                     const resultDiv = document.getElementById('result');
                     resultDiv.innerHTML = ''; // Limpar resultados anteriores
 
-                    // Buscar por código
-                    const filteredRow = rows.find(row => row[0] === codeInput);
-                    
-                    if (filteredRow) {
-                        resultDiv.innerHTML = `
-                            <p><strong>Código:</strong> ${filteredRow[0]}</p>
-                            <p><strong>Nome da Propriedade:</strong> ${filteredRow[1]}</p>
-                            <p><strong>Código SIGEF/SNCI:</strong> ${filteredRow[2]}</p>
-                            <p><strong>Município:</strong> ${filteredRow[3]}</p>
-                            <p><strong>Área (ha):</strong> ${filteredRow[4]}</p>
-                            <p><strong>Código Único:</strong> ${filteredRow[5]}</p>
-                            <p><strong>Latitude:</strong> ${filteredRow[6]}</p>
-                            <p><strong>Longitude:</strong> ${filteredRow[7]}</p>
-                            <p><a href="https://www.google.com/maps/search/?api=1&query=${filteredRow[6]},${filteredRow[7]}" target="_blank">Ver no Google Maps</a></p>
-                        `;
+                    if (data.error) {
+                        resultDiv.innerHTML = '<p>' + data.error + '</p>';
                     } else {
-                        resultDiv.innerHTML = '<p>Código não encontrado.</p>';
+                        const row = data[0];
+                        resultDiv.innerHTML = `
+                            <p><strong>Código:</strong> ${row[0]}</p>
+                            <p><strong>Nome da Propriedade:</strong> ${row[1]}</p>
+                            <p><strong>Código SIGEF/SNCI:</strong> ${row[2]}</p>
+                            <p><strong>Município:</strong> ${row[3]}</p>
+                            <p><strong>Área (ha):</strong> ${row[4]}</p>
+                            <p><strong>Código Único:</strong> ${row[5]}</p>
+                            <p><strong>Latitude:</strong> ${row[6]}</p>
+                            <p><strong>Longitude:</strong> ${row[7]}</p>
+                            <p><a href="https://www.google.com/maps/search/?api=1&query=${row[6]},${row[7]}" target="_blank">Ver no Google Maps</a></p>
+                        `;
                     }
                 })
                 .catch(error => {
-                    console.error('Erro ao buscar os dados:', error);
                     document.getElementById('result').innerHTML = 'Erro ao buscar os dados.';
                 });
         }
